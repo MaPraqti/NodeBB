@@ -1,5 +1,4 @@
 services:
-  # שירות הווב עבור NodeBB
   - type: web
     name: mapraqti-forum
     env: node
@@ -7,9 +6,7 @@ services:
     repo: https://github.com/MaPraqti/NodeBB.git
     branch: master
     healthCheckPath: /
-    # --- התיקון כאן: ההגדרות האלה הן באותה רמה כמו שאר המאפיינים ---
     nodeVersion: '20'
-    rootDirectory: .
 
     envVars:
       - key: url
@@ -20,10 +17,9 @@ services:
           property: connectionString
         key: REDIS_URI
 
-    buildCommand: npm install --production && ./nodebb setup --no-prompt --database=redis --redis:uri=$REDIS_URI && ./nodebb build
+    buildCommand: npm install --production && ./nodebb build
     startCommand: "./nodebb start"
 
-  # שירות בסיס הנתונים Redis
   - type: redis
     name: mapraqti-redis
     plan: free
