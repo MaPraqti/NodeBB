@@ -4,26 +4,21 @@ services:
     name: mapraqti-forum
     env: node
     plan: starter
-    repo: https://github.com/MaPraqti/NodeBB.git # !!! ודא שזה שם המשתמש הנכון שלך
-    branch: master # !!! שיניתי מ-main ל-master כדי שיתאים למה שמופיע אצלך בתמונה
+    repo: https://github.com/MaPraqti/NodeBB.git # ודא שזה שם המשתמש הנכון
+    branch: master
     healthCheckPath: /
     envVars:
       - key: url
-        value: "https://mapraqti-forum.onrender.com" # נעדכן לדומיין הסופי בהמשך
-      # --- זה החלק שהשתנה ---
-      # במקום לבקש כל פרט בנפרד, אנו מבקשים את כל מחרוזת החיבור
+        value: "https://mapraqti-forum.onrender.com"
       - fromService:
           type: redis
           name: mapraqti-redis
-          property: connectionString # שינוי: מבקשים connectionString במקום host/port/password
-        key: REDIS_URI # שינוי: שם המשתנה החדש
+          property: connectionString
+        key: REDIS_URI
 
-    # פקודת ה-Build שונתה כדי להשתמש במשתנה החדש
-    buildCommand: |
-      npm install --production
-      # שינוי: שימוש ב-redis:uri במקום בפרטים הנפרדים
-      ./nodebb setup --no-prompt --database=redis --redis:uri=$REDIS_URI
-      ./nodebb build
+    # --- זה החלק שהשתנה והתחזק ---
+    # איחדנו את כל הפקודות לשורה אחת עם && ביניהן
+    buildCommand: npm install --production && ./nodebb setup --no-prompt --database=redis --redis:uri=$REDIS_URI && ./nodebb build
     startCommand: "./nodebb start"
 
   # שירות בסיס הנתונים Redis - ללא שינוי
