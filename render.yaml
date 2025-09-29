@@ -4,12 +4,16 @@ services:
     name: mapraqti-forum
     env: node
     plan: starter
-    # --- הוספנו את שתי השורות הבאות כדי להיות מפורשים ---
-    rootDirectory: .  # אומר ל-Render שהפרויקט נמצא בשורש המאגר
-    nodeVersion: '20' # מקבע את גרסת Node.js ליציבות
     repo: https://github.com/MaPraqti/NodeBB.git
     branch: master
     healthCheckPath: /
+    
+    # --- זה החלק שהשתנה ---
+    # ההגדרות האלה צריכות להיות תחת "build"
+    build:
+      nodeVersion: '20' # מקבע את גרסת Node.js
+      rootDirectory: .  # אומר ל-Render שהפרויקט נמצא בשורש
+
     envVars:
       - key: url
         value: "https://mapraqti-forum.onrender.com"
@@ -19,7 +23,6 @@ services:
           property: connectionString
         key: REDIS_URI
 
-    # פקודת ה-Build המאוחדת
     buildCommand: npm install --production && ./nodebb setup --no-prompt --database=redis --redis:uri=$REDIS_URI && ./nodebb build
     startCommand: "./nodebb start"
 
