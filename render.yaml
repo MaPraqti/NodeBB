@@ -1,4 +1,4 @@
-services:
+ services:
   # שירות הווב עבור NodeBB
   - type: web
     name: mapraqti-forum
