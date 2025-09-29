@@ -8,8 +8,12 @@ services:
     branch: master
     healthCheckPath: /
     
+    # --- זה החלק הקריטי ---
+    # אומר ל-Render להיכנס לתיקיית install ולהתחיל לעבוד משם
+    rootDirectory: install 
+    
     envVars:
-      - key: url
+      - key: URL
         value: "https://mapraqti-forum.onrender.com"
       - fromService:
           type: redis
@@ -17,8 +21,12 @@ services:
           property: connectionString
         key: REDIS_URI
 
-    buildCommand: npm install --production && ./nodebb setup --no-prompt --database=redis --redis:uri=$REDIS_URI && ./nodebb build
-    startCommand: "./nodebb start"
+    # פקודת ה-Build פשוטה יותר, כי אנחנו כבר בתיקייה הנכונה
+    buildCommand: npm install --production
+    
+    # פקודת ההתחלה מריצה את הקובץ הראשי (app.js), אבל צריכה
+    # לחזור תיקייה אחת אחורה כדי למצוא את סקריפט ה-nodebb
+    startCommand: "node ../nodebb start"
 
   # שירות בסיס הנתונים Redis
   - type: redis
