@@ -1,36 +1,49 @@
 services:
-  # שירות הווב עבור NodeBB
   - type: web
     name: mapraqti-forum
     env: node
-    plan: starter
-    repo: https://github.com/MaPraqti/NodeBB.git
-    branch: master
+    plan: starter # מומלץ ליציבות. ניתן לשנות ל-free לניסיון.
+    repo: https://github.com/YOUR_USERNAME/NodeBB.git # !!! החלף בשם המשתמש שלך
+    branch: main
     healthCheckPath: /
-    
-    # --- זה החלק הקריטי ---
-    # אומר ל-Render להיכנס לתיקיית install ולהתחיל לעבוד משם
-    rootDirectory: install 
-    
     envVars:
-      - key: URL
-        value: "https://mapraqti-forum.onrender.com"
+      # בשלב 4 נעדכן את זה לדומיין הסופי האמיתי
+      - key: url 
+        value: "https://mapraqti-forum.onrender.com" 
       - fromService:
           type: redis
           name: mapraqti-redis
-          property: connectionString
-        key: REDIS_URI
-
-    # פקודת ה-Build פשוטה יותר, כי אנחנו כבר בתיקייה הנכונה
-    buildCommand: npm install --production
+          property: host
+        key: REDIS_HOST
+      - fromService:
+          type: redis
+          name: mapraqti-redis
+          property: port
+        key: REDIS_PORT
+      - fromService:
+          type: redis
+          name: mapraqti-redis
+          property: password
+        key: REDIS_PASSWORD
     
-    # פקודת ההתחלה מריצה את הקובץ הראשי (app.js), אבל צריכה
-    # לחזור תיקייה אחת אחורה כדי למצוא את סקריפט ה-nodebb
-    startCommand: "node ../nodebb start"
+    # --- START OF CRITICAL FIX ---
+    # ה-Build Command המתוקן:
+    # 1. נכנסים לתיקיית install
+    # 2. מריצים npm install כדי להתקין את התלויות
+    # 3. חוזרים תיקייה אחת למעלה (לשורש הפרויקט)
+    # 4. מריצים את סקריפט ההתקנה וה-build משם
+    buildCommand: |
+      cd install
+      npm install --production
+      cd ..
+      ./nodebb setup --no-prompt --database=redis --redis:host=$REDIS_HOST --redis:port=$REDIS_PORT --redis:password=$REDIS_PASSWORD
+      ./nodebb build
+    # --- END OF CRITICAL FIX ---
 
-  # שירות בסיס הנתונים Redis
+    startCommand: "./nodebb start"
+
   - type: redis
     name: mapraqti-redis
     plan: free
-    ipAllowList: []
+    ipAllowList: [] 
     maxmemoryPolicy: allkeys-lru
