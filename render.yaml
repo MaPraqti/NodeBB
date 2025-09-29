@@ -2,48 +2,43 @@ services:
   - type: web
     name: mapraqti-forum
     env: node
-    plan: starter # מומלץ ליציבות. ניתן לשנות ל-free לניסיון.
-    repo: https://github.com/MaPraqti/NodeBB.git # !!! החלף בשם המשתמש שלך
+    plan: starter
+    repo: https://github.com/YOUR_USERNAME/NodeBB.git # !!! החלף בשם המשתמש שלך
     branch: main
     healthCheckPath: /
     envVars:
-      # בשלב 4 נעדכן את זה לדומיין הסופי האמיתי
-      - key: url 
-        value: "https://mapraqti-forum.onrender.com" 
+      # משתנה זה נשאר, ונעדכן אותו לדומיין הסופי בשלב הבא
+      - key: url
+        value: "https://mapraqti-forum.onrender.com"
+      
+      # --- התיקון מתחיל כאן ---
+      # 1. אנו מבקשים מ-Render את כל מחרוזת החיבור במשתנה אחד בשם REDIS_URL
       - fromService:
           type: redis
           name: mapraqti-redis
-          property: host
-        key: REDIS_HOST
-      - fromService:
-          type: redis
-          name: mapraqti-redis
-          property: port
-        key: REDIS_PORT
-      - fromService:
-          type: redis
-          name: mapraqti-redis
-          property: password
-        key: REDIS_PASSWORD
-    
-    # --- START OF CRITICAL FIX ---
-    # ה-Build Command המתוקן:
-    # 1. נכנסים לתיקיית install
-    # 2. מריצים npm install כדי להתקין את התלויות
-    # 3. חוזרים תיקייה אחת למעלה (לשורש הפרויקט)
-    # 4. מריצים את סקריפט ההתקנה וה-build משם
+          property: connectionString # זהו המאפיין הנכון לפי השגיאה
+        key: REDIS_URL
+
+    # 2. פקודת ה-Build המתוקנת, שמפרקת את ה-URL לחלקים
     buildCommand: |
+      # הפקודות הבאות משתמשות בכלי 'sed' כדי לחלץ את החלקים מה-URL
+      # ויוצרות משתני סביבה חדשים ש-NodeBB יכול להשתמש בהם
+      export REDIS_HOST=$(echo $REDIS_URL | sed -e 's/redis.*@//' -e 's/:.*//')
+      export REDIS_PORT=$(echo $REDIS_URL | sed -e 's/.*://')
+      export REDIS_PASSWORD=$(echo $REDIS_URL | sed -e 's/redis.*:\/\///' -e 's/@.*//')
+      
+      # כעת, נשתמש במשתנים החדשים בפקודות המקוריות
       cd install
       npm install --production
       cd ..
       ./nodebb setup --no-prompt --database=redis --redis:host=$REDIS_HOST --redis:port=$REDIS_PORT --redis:password=$REDIS_PASSWORD
       ./nodebb build
-    # --- END OF CRITICAL FIX ---
-
+    # --- סוף התיקון ---
+    
     startCommand: "./nodebb start"
 
   - type: redis
     name: mapraqti-redis
     plan: free
-    ipAllowList: [] 
+    ipAllowList: []
     maxmemoryPolicy: allkeys-lru
