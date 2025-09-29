@@ -3,37 +3,32 @@ services:
     name: mapraqti-forum
     env: node
     plan: starter
-    repo: https://github.com/MaPraqti/NodeBB.git # !!! החלף בשם המשתמש שלך
-    branch: master
+    
+    # --- התיקון המרכזי כאן ---
+    # 1. אנחנו פונים ישירות למאגר הרשמי של NodeBB
+    repo: https://github.com/NodeBB/NodeBB.git
+    
+    # 2. אנחנו בוחרים את הגרסה היציבה שאנחנו רוצים מתוך התגיות שלהם
+    branch: v3.9.4 # !!! ודא שזו הגרסה היציבה העדכנית ביותר
+    # --- סוף התיקון ---
+
     healthCheckPath: /
     envVars:
-      # משתנה זה נשאר, ונעדכן אותו לדומיין הסופי בשלב הבא
       - key: url
-        value: "https://mapraqti-forum.onrender.com"
-      
-      # --- התיקון מתחיל כאן ---
-      # 1. אנו מבקשים מ-Render את כל מחרוזת החיבור במשתנה אחד בשם REDIS_URL
+        value: "https://mapraqti-forum.onrender.com" # נעדכן לדומיין סופי בהמשך
       - fromService:
           type: redis
           name: mapraqti-redis
-          property: connectionString # זהו המאפיין הנכון לפי השגיאה
+          property: connectionString
         key: REDIS_URL
 
-    # 2. פקודת ה-Build המתוקנת, שמפרקת את ה-URL לחלקים
     buildCommand: |
-      # הפקודות הבאות משתמשות בכלי 'sed' כדי לחלץ את החלקים מה-URL
-      # ויוצרות משתני סביבה חדשים ש-NodeBB יכול להשתמש בהם
+      npm install --production
       export REDIS_HOST=$(echo $REDIS_URL | sed -e 's/redis.*@//' -e 's/:.*//')
       export REDIS_PORT=$(echo $REDIS_URL | sed -e 's/.*://')
       export REDIS_PASSWORD=$(echo $REDIS_URL | sed -e 's/redis.*:\/\///' -e 's/@.*//')
-      
-      # כעת, נשתמש במשתנים החדשים בפקודות המקוריות
-      cd install
-      npm install --production
-      cd ..
       ./nodebb setup --no-prompt --database=redis --redis:host=$REDIS_HOST --redis:port=$REDIS_PORT --redis:password=$REDIS_PASSWORD
       ./nodebb build
-    # --- סוף התיקון ---
     
     startCommand: "./nodebb start"
 
