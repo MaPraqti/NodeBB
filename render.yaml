@@ -1,42 +1,34 @@
 services:
-  # זהו שירות הווב שיריץ את הפורום
+  # שירות הווב עבור NodeBB
   - type: web
-    name: mapraqti-forum # שם השירות ב-Render
+    name: mapraqti-forum
     env: node
-    plan: starter # מומלץ להתחיל עם תוכנית בסיסית בתשלום. אפשר לשנות ל-free לניסיון.
-    repo: https://github.com/MaPraqti/NodeBB.git # !!! החלף בשם המשתמש שלך
-    branch: main # הערה: NodeBB משתמש ב-master, אך Render יכול לעבוד עם main. נשאיר main כרגע.
+    plan: starter
+    repo: https://github.com/MaPraqti/NodeBB.git # !!! ודא שזה שם המשתמש הנכון שלך
+    branch: master # !!! שיניתי מ-main ל-master כדי שיתאים למה שמופיע אצלך בתמונה
     healthCheckPath: /
     envVars:
-      # בהמשך נעדכן את זה לדומיין האמיתי שלנו
-      - key: url 
-        value: "https://mapraqti-forum.onrender.com"
-      # שלושת המשתנים הבאים יקבלו את הערכים שלהם אוטומטית משירות ה-Redis למטה
+      - key: url
+        value: "https://mapraqti-forum.onrender.com" # נעדכן לדומיין הסופי בהמשך
+      # --- זה החלק שהשתנה ---
+      # במקום לבקש כל פרט בנפרד, אנו מבקשים את כל מחרוזת החיבור
       - fromService:
           type: redis
           name: mapraqti-redis
-          property: host
-        key: REDIS_HOST
-      - fromService:
-          type: redis
-          name: mapraqti-redis
-          property: port
-        key: REDIS_PORT
-      - fromService:
-          type: redis
-          name: mapraqti-redis
-          property: password
-        key: REDIS_PASSWORD
-    # פקודת ההתקנה: היא משתמשת במשתנים שלמעלה כדי להגדיר את החיבור לבסיס הנתונים
+          property: connectionString # שינוי: מבקשים connectionString במקום host/port/password
+        key: REDIS_URI # שינוי: שם המשתנה החדש
+
+    # פקודת ה-Build שונתה כדי להשתמש במשתנה החדש
     buildCommand: |
       npm install --production
-      ./nodebb setup --no-prompt --database=redis --redis:host=$REDIS_HOST --redis:port=$REDIS_PORT --redis:password=$REDIS_PASSWORD
+      # שינוי: שימוש ב-redis:uri במקום בפרטים הנפרדים
+      ./nodebb setup --no-prompt --database=redis --redis:uri=$REDIS_URI
       ./nodebb build
     startCommand: "./nodebb start"
 
-  # זהו שירות בסיס הנתונים
+  # שירות בסיס הנתונים Redis - ללא שינוי
   - type: redis
     name: mapraqti-redis
     plan: free
-    ipAllowList: [] 
+    ipAllowList: []
     maxmemoryPolicy: allkeys-lru
