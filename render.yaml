@@ -7,12 +7,9 @@ services:
     repo: https://github.com/MaPraqti/NodeBB.git
     branch: master
     healthCheckPath: /
-    
-    # --- זה החלק שהשתנה ---
-    # ההגדרות האלה צריכות להיות תחת "build"
-    build:
-      nodeVersion: '20' # מקבע את גרסת Node.js
-      rootDirectory: .  # אומר ל-Render שהפרויקט נמצא בשורש
+    # --- התיקון כאן: ההגדרות האלה הן באותה רמה כמו שאר המאפיינים ---
+    nodeVersion: '20'
+    rootDirectory: .
 
     envVars:
       - key: url
