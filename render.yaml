@@ -3,7 +3,7 @@ services:
     name: mapraqti-forum
     env: node
     plan: starter
-    repo: https://github.com/YOUR_USERNAME/NodeBB.git # !!! החלף בשם המשתמש שלך
+    repo: https://github.com/MaPraqti/NodeBB.git # !!! החלף בשם המשתמש שלך
     branch: master
     healthCheckPath: /
     envVars:
