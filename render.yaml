@@ -4,14 +4,12 @@ services:
     env: node
     plan: starter
     
-    # --- התיקון המרכזי כאן ---
-    # 1. אנחנו פונים ישירות למאגר הרשמי של NodeBB
+    # אנחנו אומרים ל-Render במפורש להשתמש במאגר הרשמי
     repo: https://github.com/NodeBB/NodeBB.git
     
-    # 2. אנחנו בוחרים את הגרסה היציבה שאנחנו רוצים מתוך התגיות שלהם
-    branch: v3.9.4 # !!! ודא שזו הגרסה היציבה העדכנית ביותר
-    # --- סוף התיקון ---
-
+    # אנחנו בוחרים גרסה יציבה ספציפית
+    branch: v3.9.4 # ודא שזו הגרסה האחרונה הזמינה ב-Tags של המאגר הרשמי
+    
     healthCheckPath: /
     envVars:
       - key: url
@@ -22,12 +20,25 @@ services:
           property: connectionString
         key: REDIS_URL
 
+    # פקודת Build סופית ומתוקנת
     buildCommand: |
+      # 1. התקן תלויות בתיקיית install תחילה
+      cd install
       npm install --production
+      cd ..
+
+      # 2. כעת התקן תלויות בתיקייה הראשית
+      npm install --production
+
+      # 3. חלץ פרטי חיבור
       export REDIS_HOST=$(echo $REDIS_URL | sed -e 's/redis.*@//' -e 's/:.*//')
       export REDIS_PORT=$(echo $REDIS_URL | sed -e 's/.*://')
       export REDIS_PASSWORD=$(echo $REDIS_URL | sed -e 's/redis.*:\/\///' -e 's/@.*//')
+      
+      # 4. הרץ התקנה אוטומטית
       ./nodebb setup --no-prompt --database=redis --redis:host=$REDIS_HOST --redis:port=$REDIS_PORT --redis:password=$REDIS_PASSWORD
+      
+      # 5. בצע build סופי
       ./nodebb build
     
     startCommand: "./nodebb start"
