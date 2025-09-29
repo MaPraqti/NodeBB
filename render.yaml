@@ -4,7 +4,7 @@ services:
     env: node
     plan: starter
     repo: https://github.com/YOUR_USERNAME/NodeBB.git # !!! החלף בשם המשתמש שלך
-    branch: main
+    branch: master
     healthCheckPath: /
     envVars:
       # משתנה זה נשאר, ונעדכן אותו לדומיין הסופי בשלב הבא
